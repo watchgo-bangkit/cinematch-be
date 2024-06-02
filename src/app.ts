@@ -5,6 +5,8 @@ import errorHandler from './middlewares/errorHandler'
 const app = express()
 const PORT = 8000
 
+app.use(express.json())
+
 app.get('/', (req, res) => {
   res.send('Hello World!')
 })

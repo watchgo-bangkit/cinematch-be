@@ -21,13 +21,12 @@ router.post(
   '/login',
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      // Validate and parse request data
       const loginData = LoginDataSchema.parse(req.body)
 
       const result = await authService.loginUser(loginData)
       res.status(200).json(result)
     } catch (error) {
-      next(error) // Pass errors to the global error handler
+      next(error)
     }
   },
 )
