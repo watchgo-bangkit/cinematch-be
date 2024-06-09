@@ -1,9 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -20,11 +17,82 @@ enum Gender {
 }
 
 model User {
-  id          Int      @id @default(autoincrement())
-  name        String
-  email       String   @unique
-  password    String
-  age         Int
-  gender      Gender
-  preferences String[]
+  id               Int     @id @default(autoincrement())
+  name             String
+  email            String  @unique
+  password         String
+  age              Int
+  gender           Gender
+  // Relationship to manage user genre preferences
+  genrePreferences Genre[] @relation("UserToGenre")
+}
+
+model Crew {
+  id             Int     @id @default(autoincrement())
+  name           String
+  popularity     Decimal @db.Decimal(5, 2)
+  profile_path   String
+  crew_id        Int
+  tmdb_credit_id String  @unique
+  job            String
+  department     String
+
+  // Optional relationship with Credit
+  credit_id Int?
+  Credit    Credit? @relation(fields: [credit_id], references: [id])
+}
+
+model Cast {
+  id             Int     @id @default(autoincrement())
+  name           String
+  popularity     Decimal @db.Decimal(5, 2)
+  profile_path   String
+  cast_id        Int
+  character      String
+  tmdb_credit_id String  @unique
+
+  // Optional relationship with Credit
+  credit_id Int?
+  Credit    Credit? @relation(fields: [credit_id], references: [id])
+}
+
+model Credit {
+  id       Int    @id @default(autoincrement())
+  director String
+  casts    Cast[]
+  crews    Crew[]
+  // Cascading deletes to ensure data integrity
+  movie_id Int    @unique
+  movie    Movie? @relation(fields: [movie_id], references: [id], onDelete: Cascade)
+}
+
+model Genre {
+  id           Int            @id @default(autoincrement())
+  tmdb_id      Int            @unique
+  name         String
+  // Relationship fields documenting many-to-many with Movie and User
+  MovieToGenre MovieToGenre[]
+  movies       Movie[]        @relation("MovieToGenre")
+  users        User[]         @relation("UserToGenre")
+}
+
+model Movie {
+  id           Int            @id @default(autoincrement())
+  name         String
+  release_date DateTime
+  runtime      Int
+  vote_average Decimal        @db.Decimal(4, 2)
+  // Relationship fields for genres and credits
+  genres       Genre[]        @relation("MovieToGenre")
+  credit       Credit?
+  MovieToGenre MovieToGenre[]
+}
+
+model MovieToGenre {
+  movie_id Int
+  genre_id Int
+  movie    Movie @relation(fields: [movie_id], references: [id])
+  genre    Genre @relation(fields: [genre_id], references: [id])
+
+  @@id([movie_id, genre_id])
 }
