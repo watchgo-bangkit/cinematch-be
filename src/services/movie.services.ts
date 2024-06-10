@@ -1,12 +1,12 @@
 import { Request, Response, NextFunction } from 'express'
 import { PrismaClient } from '@prisma/client'
+import { getTMDBMovieList } from './tmdb.services'
 import {
-  getTMDBMovieCreditsDetail,
-  getTMDBMovieDetail,
-  getTMDBMovieList,
-} from './tmdb.services'
-import { MovieDetailParams } from '../dto/movies.dto'
-import { TMDB_MovieDetail } from '../types/tmdb.types'
+  MovieDetailParams,
+  MovieSwipeBody,
+  SwipeDirection,
+} from '../dto/movies.dto'
+import { getMovieById, insertMovieToWatchlist } from '../dao/movies.dao'
 
 const prisma = new PrismaClient()
 
@@ -32,51 +32,7 @@ export const getMovieDetail = async (
   try {
     const { id } = req.params as MovieDetailParams
     const parsedId = parseInt(id)
-    const dataMovie = await getTMDBMovieDetail(parsedId)
-    const {
-      adult,
-      backdrop_path,
-      original_title,
-      overview,
-      popularity,
-      poster_path,
-      release_date,
-      title,
-      video,
-      vote_average,
-      vote_count,
-      genres,
-      homepage,
-      imdb_id,
-      runtime,
-      status,
-      tagline,
-    } = dataMovie.movie
-
-    const dataCredits = await getTMDBMovieCreditsDetail(parseInt(id))
-
-    const movieDetail: TMDB_MovieDetail = {
-      id: parsedId,
-      adult,
-      backdrop_path,
-      original_title,
-      overview,
-      popularity,
-      poster_path,
-      release_date,
-      title,
-      video,
-      vote_average,
-      vote_count,
-      genres,
-      homepage,
-      imdb_id,
-      runtime,
-      status,
-      tagline,
-      cast: dataCredits.credits.cast,
-    }
-
+    const movieDetail = getMovieById(parsedId)
     return res.json({ data: movieDetail })
   } catch (error) {
     next(error)
@@ -87,7 +43,18 @@ export const handleSwipeMovie = async (
   req: Request,
   res: Response,
   next: NextFunction,
-) => {}
+) => {
+  try {
+    const { id } = req.params as MovieDetailParams
+    const { swipe_direction } = req.body as MovieSwipeBody
+
+    insertMovieToWatchlist(parseInt(id), swipe_direction as SwipeDirection)
+    // TODO: return inserted watchlist?
+    return res.json({})
+  } catch (error) {
+    next(error)
+  }
+}
 
 export const getGenreList = async (
   req: Request,

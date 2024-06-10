@@ -27,3 +27,4 @@ export const MovieSwipeSchema = z.object({
 })
 
 export type MovieDetailParams = z.infer<typeof MovieDetailParams>
+export type MovieSwipeBody = z.infer<typeof MovieSwipeBody>

@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import * as movieServices from '../services/movie.services'
 import validateSchema from '../middlewares/validateSchema'
-import { MovieDetailSchema } from '../dto/movies.dto'
+import { MovieDetailSchema, MovieSwipeSchema } from '../dto/movies.dto'
 const router = Router()
 
 router.get('/', movieServices.getMovieList)
@@ -10,7 +10,11 @@ router.get(
   validateSchema(MovieDetailSchema),
   movieServices.getMovieDetail,
 )
-router.post('/:id', validateSchema(MovieDetailSchema))
+router.post(
+  '/:id',
+  validateSchema(MovieSwipeSchema),
+  movieServices.handleSwipeMovie,
+)
 
 router.get('/genre', movieServices.getGenreList)
 

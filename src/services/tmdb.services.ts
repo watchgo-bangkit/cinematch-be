@@ -1,6 +1,11 @@
 import axios from 'axios'
 import dotenv from 'dotenv'
-import { TMDB_Cast, TMDB_Movie, TMDB_MovieDetail } from '../types/tmdb.types'
+import {
+  TMDB_Cast,
+  TMDB_Crew,
+  TMDB_Movie,
+  TMDB_MovieDetail,
+} from '../types/tmdb.types'
 
 dotenv.config()
 
@@ -72,7 +77,7 @@ export const getTMDBMovieCreditsDetail = async (movie_id: number) => {
     const movieCreditsResponse = await tmdbAxios.get(
       TMDB_API_PATH.creditsDetail(movie_id),
     )
-    const { id, cast } = movieCreditsResponse.data
+    const { id, cast, crew } = movieCreditsResponse.data
     const filteredCast: TMDB_Cast[] = cast
       ?.map(
         ({
@@ -95,10 +100,14 @@ export const getTMDBMovieCreditsDetail = async (movie_id: number) => {
       )
       ?.sort((a: TMDB_Cast, b: TMDB_Cast) => a.popularity - b.popularity)
 
+    const director = (crew as TMDB_Crew[])?.find(
+      ({ job, department }) => job == 'Director' || department == 'Directing',
+    )
     return {
       credits: {
         id,
         cast: filteredCast,
+        director: director ?? null,
       },
     }
   } catch (error) {
