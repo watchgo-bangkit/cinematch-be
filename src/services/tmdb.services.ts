@@ -1,13 +1,15 @@
 import axios from 'axios'
 import dotenv from 'dotenv'
+import { TMDB_Cast, TMDB_Movie, TMDB_MovieDetail } from '../types/tmdb.types'
 
 dotenv.config()
 
 const TMDB_API_PATH = {
   movieList: '/movie/now_playing',
+  movieDetail: (movie_id: number) => `/movie/${movie_id}`,
   movieGenreList: '/genre/movie/list',
   tvGenreList: '/genre/tv/list',
-  creditsDetail: (movie_id: number) => `movie/${movie_id}/credits`,
+  creditsDetail: (movie_id: number) => `/movie/${movie_id}/credits`,
 }
 
 const TMDB_API_BASE_URL = process.env.TMDB_API_BASE_URL
@@ -21,7 +23,7 @@ const tmdbAxios = axios.create({
 })
 
 // Function to fetch all genres
-export const getAllGenres = async () => {
+export const getTMDBAllGenres = async () => {
   try {
     const movieGenresResponse = await tmdbAxios.get(
       TMDB_API_PATH.movieGenreList,
@@ -29,43 +31,77 @@ export const getAllGenres = async () => {
     const tvGenresResponse = await tmdbAxios.get(TMDB_API_PATH.tvGenreList)
 
     return {
-      genre_list: [
+      genres: [
         ...movieGenresResponse.data.genres,
         ...tvGenresResponse.data.genres,
       ],
     }
   } catch (error) {
-    console.error('Error fetching genres:', error)
     throw new Error('Failed to fetch genres')
   }
 }
 
 // Function to fetch the movie list
-export const getMovieList = async () => {
+export const getTMDBMovieList = async () => {
   try {
     const movieListResponse = await tmdbAxios.get(TMDB_API_PATH.movieList)
 
     return {
-      movieList: movieListResponse.data.results,
+      movies: movieListResponse.data.results as TMDB_Movie[],
     }
   } catch (error) {
-    console.error('Error fetching movie list:', error)
     throw new Error('Failed to fetch movie list')
   }
 }
 
-// Function to fetch the movie credits
-export const getMovieCreditsDetail = async (movie_id: number) => {
+export const getTMDBMovieDetail = async (movie_id: number) => {
   try {
-    const movieListResponse = await tmdbAxios.get(
-      TMDB_API_PATH.creditsDetail(movie_id),
+    const movieDetailResponse = await tmdbAxios.get(
+      TMDB_API_PATH.movieDetail(movie_id),
     )
-
     return {
-      movieList: movieListResponse.data.results,
+      movie: movieDetailResponse.data as TMDB_MovieDetail,
     }
   } catch (error) {
-    console.error('Error fetching movie list:', error)
+    throw new Error(`Failed to fetch movie detail with id ${movie_id}`)
+  }
+}
+
+export const getTMDBMovieCreditsDetail = async (movie_id: number) => {
+  try {
+    const movieCreditsResponse = await tmdbAxios.get(
+      TMDB_API_PATH.creditsDetail(movie_id),
+    )
+    const { id, cast } = movieCreditsResponse.data
+    const filteredCast: TMDB_Cast[] = cast
+      ?.map(
+        ({
+          id,
+          adult,
+          gender,
+          name,
+          popularity,
+          profile_path,
+          character,
+        }: any) => ({
+          id,
+          adult,
+          gender,
+          name,
+          popularity,
+          profile_path,
+          character,
+        }),
+      )
+      ?.sort((a: TMDB_Cast, b: TMDB_Cast) => a.popularity - b.popularity)
+
+    return {
+      credits: {
+        id,
+        cast: filteredCast,
+      },
+    }
+  } catch (error) {
     throw new Error('Failed to fetch movie list')
   }
 }
