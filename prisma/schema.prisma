@@ -17,14 +17,14 @@ enum Gender {
 }
 
 model User {
-  id               Int     @id @default(autoincrement())
-  name             String
-  email            String  @unique
-  password         String
-  age              Int
-  gender           Gender
+  id                Int     @id @default(autoincrement())
+  name              String
+  email             String  @unique
+  password          String
+  age               Int
+  gender            Gender
   // Relationship to manage user genre preferences
-  genrePreferences Genre[] @relation("UserToGenre")
+  genre_preferences Genre[] @relation("UserToGenre")
 }
 
 model Crew {
@@ -67,23 +67,23 @@ model Credit {
 }
 
 model Genre {
-  id           Int            @id @default(autoincrement())
-  tmdb_id      Int            @unique
-  name         String
+  id             Int            @id @default(autoincrement())
+  tmdb_id        Int            @unique
+  name           String
   // Relationship fields documenting many-to-many with Movie and User
-  MovieToGenre MovieToGenre[]
-  users        User[]         @relation("UserToGenre")
+  movie_to_genre MovieToGenre[]
+  users          User[]         @relation("UserToGenre")
 }
 
 model Movie {
-  id           Int            @id @default(autoincrement())
-  name         String
-  release_date DateTime
-  runtime      Int
-  vote_average Decimal        @db.Decimal(4, 2)
+  id             Int            @id @default(autoincrement())
+  name           String
+  release_date   DateTime
+  runtime        Int
+  vote_average   Decimal        @db.Decimal(4, 2)
   // Relationship fields for genres and credits
-  credit       Credit?
-  MovieToGenre MovieToGenre[]
+  credit         Credit?
+  movie_to_genre MovieToGenre[]
 }
 
 model MovieToGenre {
