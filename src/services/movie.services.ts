@@ -32,7 +32,8 @@ export const getMovieDetail = async (
   try {
     const { id } = req.params as MovieDetailParams
     const parsedId = parseInt(id)
-    const movieDetail = getMovieById(parsedId)
+    const movieDetail = await getMovieById(parsedId)
+
     return res.json({ data: movieDetail })
   } catch (error) {
     next(error)

@@ -4,6 +4,7 @@ import validateSchema from '../middlewares/validateSchema'
 import { MovieDetailSchema, MovieSwipeSchema } from '../dto/movies.dto'
 const router = Router()
 
+router.get('/genres', movieServices.getGenreList)
 router.get('/', movieServices.getMovieList)
 router.get(
   '/:id',
@@ -11,11 +12,9 @@ router.get(
   movieServices.getMovieDetail,
 )
 router.post(
-  '/:id',
+  '/:id/swipe',
   validateSchema(MovieSwipeSchema),
   movieServices.handleSwipeMovie,
 )
-
-router.get('/genre', movieServices.getGenreList)
 
 export default router
