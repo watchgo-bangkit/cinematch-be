@@ -72,7 +72,6 @@ model Genre {
   name         String
   // Relationship fields documenting many-to-many with Movie and User
   MovieToGenre MovieToGenre[]
-  movies       Movie[]        @relation("MovieToGenre")
   users        User[]         @relation("UserToGenre")
 }
 
@@ -83,7 +82,6 @@ model Movie {
   runtime      Int
   vote_average Decimal        @db.Decimal(4, 2)
   // Relationship fields for genres and credits
-  genres       Genre[]        @relation("MovieToGenre")
   credit       Credit?
   MovieToGenre MovieToGenre[]
 }

@@ -1,5 +1,6 @@
 import express from 'express'
 import authRoutes from './routes/auth.routes'
+import movieRoutes from './routes/movie.routes'
 import errorHandler from './middlewares/errorHandler'
 
 const app = express()
@@ -12,6 +13,7 @@ app.get('/', (req, res) => {
 })
 
 app.use('/api/auth', authRoutes)
+app.use('/api/movies', movieRoutes)
 
 app.use(errorHandler)
 
