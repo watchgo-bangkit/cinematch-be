@@ -1,4 +1,4 @@
-import { Router, Request, Response, NextFunction } from 'express'
+import { Router } from 'express'
 import * as authService from '../services/auth.service'
 import { LoginDataSchema, RegisterDataSchema } from '../dto/auth.dto'
 import validateSchema from '../middlewares/validateSchema'

@@ -1,22 +1,28 @@
-import bcrypt from 'bcryptjs'
+import { Request, Response, NextFunction } from 'express'
+import { PrismaClient } from '@prisma/client'
 
-import { Genre, PrismaClient } from '@prisma/client'
-import { ZodError } from 'zod'
-import HttpError from '../utils/httpError'
+import { getMovieCreditsDetail } from './tmdb.services'
 const prisma = new PrismaClient()
 
-export const getMovieList = async (data: any) => {
+export const getMovieList = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
-  } catch (error) {}
+  } catch (error) {
+    next(error)
+  }
 }
-export const getGenreList = async (): Promise<Genre[]> => {
+export const getGenreList = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const genres = await prisma.genre.findMany()
-    return genres
+    res.json({ data: genres })
   } catch (error) {
-    if (error instanceof ZodError) {
-      throw new HttpError(400, 'Validation Error: ' + error.message)
-    }
-    throw new HttpError(500, 'Internal Server Error')
+    next(error)
   }
 }

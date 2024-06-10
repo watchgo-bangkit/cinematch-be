@@ -42,7 +42,7 @@ export const registerUser = async (
         genre_preferences: true,
       },
     })
-    return res.status(201).json(newUser)
+    return res.status(201).json({ data: newUser })
   } catch (error) {
     next(error)
   }
@@ -76,7 +76,7 @@ export const loginUser = async (
       },
     )
 
-    return res.status(200).json({ user, token })
+    return res.status(200).json({ data: { user, token } })
   } catch (error) {
     next(error)
   }
