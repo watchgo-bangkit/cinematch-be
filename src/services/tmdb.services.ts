@@ -10,7 +10,7 @@ import {
 dotenv.config()
 
 const TMDB_API_PATH = {
-  movieList: '/movie/now_playing',
+  movieList: '/discover/movie',
   movieDetail: (movie_id: number) => `/movie/${movie_id}`,
   movieGenreList: '/genre/movie/list',
   tvGenreList: '/genre/tv/list',
