@@ -1,9 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -20,13 +17,23 @@ enum Gender {
 }
 
 model User {
-  id          Int      @id @default(autoincrement())
-  name        String
-  email       String   @unique
-  password    String
-  age         Int
-  gender      Gender
-  preferences String[]
+  id                Int     @id @default(autoincrement())
+  name              String
+  email             String  @unique
+  password          String
+  age               Int
+  gender            Gender
+  // Relationship to manage user genre preferences
+  genre_preferences Genre[] @relation("UserToGenre")
+}
+
+model Genre {
+  id      Int    @id @default(autoincrement())
+  tmdb_id Int    @unique
+  name    String
+  // Relationship fields documenting many-to-many with Movie and User
+
+  users User[] @relation("UserToGenre")
 }
 
 model Watchlist {
