@@ -2,6 +2,7 @@ import express from 'express'
 import authRoutes from './routes/auth.routes'
 import movieRoutes from './routes/movie.routes'
 import errorHandler from './middlewares/errorHandler'
+import watchlistRoutes from './routes/watchlist.routes'
 
 const app = express()
 const PORT = 8000
@@ -14,6 +15,7 @@ app.get('/', (req, res) => {
 
 app.use('/api/auth', authRoutes)
 app.use('/api/movies', movieRoutes)
+app.use('/watchlist', watchlistRoutes);
 
 app.use(errorHandler)
 
