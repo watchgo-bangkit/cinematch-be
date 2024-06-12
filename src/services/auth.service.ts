@@ -13,7 +13,7 @@ export const registerUser = async (
   next: NextFunction,
 ) => {
   try {
-    const { password, genre_preferences } = req.body as RegisterDataBody
+    const { password } = req.body as RegisterDataBody
 
     const validatedGenrePreferences = RegisterDataBody.pick({
       genre_preferences: true,
