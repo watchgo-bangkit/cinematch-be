@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getWatchlist, addWatchlistItem, deleteWatchlistItem } from '../services/watchlist.service';
+import { getWatchlist, addWatchlistItem, deleteWatchlistItem, rateWatchlistItem } from '../services/watchlist.service';
 import authenticateToken, { AuthRequest } from '../middlewares/auth';
 
 const router = Router();
@@ -71,5 +71,39 @@ router.delete('/:id', authenticateToken, async (req: AuthRequest, res) => {
         }
     }
 });
+
+router.put('rate/:id', authenticateToken, async (req: AuthRequest, res) => {
+    const { id } = req.params;
+    const { rating } = req.body; 
+    try {
+        const userId = req.user?.userId;
+        if (!userId) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+        
+        // Ensure the rating is a valid number
+        if (typeof rating !== 'number' || rating < 0 || rating > 10) {
+            return res.status(400).json({ error: 'Invalid rating. Rating must be a number between 0 and 10.' });
+        }
+
+        const movie_id = parseInt(id);
+        if (isNaN(movie_id)) {
+            return res.status(400).json({ error: 'Invalid movie ID' });
+        }
+
+        const updatedItem = await rateWatchlistItem({
+            user_id: userId,
+            movie_id: movie_id,
+            rating: rating,
+        });
+        res.status(200).json(updatedItem);
+    } catch (error) {
+        if (isError(error) && error.message === 'Watchlist item not found') {
+            res.status(404).json({ error: error.message });
+        } else {
+            res.status(500).json({ error: 'Internal Server Error' });
+        }
+    }
+})
 
 export default router;

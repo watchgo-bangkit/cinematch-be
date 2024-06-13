@@ -17,12 +17,12 @@ export const addWatchlistItem = async (data: {
     vote_average: number,
     casts: string[],
     liked: boolean,
-    }) => {
+}) => {
     // Check if the movie already exists in the user's watchlist
     const existingItem = await prisma.watchlist.findFirst({
         where: {
-        user_id: data.user_id,
-        movie_id: data.movie_id,
+            user_id: data.user_id,
+            movie_id: data.movie_id,
         },
     });
 
@@ -39,12 +39,41 @@ export const deleteWatchlistItem = async (id: number, userId: number) => {
             id,
             user_id: userId,
         },
-        });
-    
-        if (!watchlistItem) {
+    });
+
+    if (!watchlistItem) {
         throw new Error('Watchlist item not found');
-        }
-    
-        await prisma.watchlist.delete({ where: { id } });
-        return { message: 'Watchlist item deleted successfully' };
+    }
+
+    await prisma.watchlist.delete({ where: { id } });
+    return { message: 'Watchlist item deleted successfully' };
 };
+
+export const rateWatchlistItem = async (data: {
+    user_id: number, 
+    movie_id: number, 
+    rating: number,
+}) => {
+    // Check if the specified watchlist item exists
+    const watchlistItem = await prisma.watchlist.findFirst({
+        where: {
+            user_id: data.user_id,
+            movie_id: data.movie_id,
+        },
+    });
+
+    // If the item does not exist, throw an error
+    if (!watchlistItem) {
+        throw new Error('Watchlist item not found');
+    }
+
+    // Update the rating of the watchlist item
+    return await prisma.watchlist.update({
+        where: {
+            id: watchlistItem.id,
+        },
+        data: {
+            rating: data.rating,
+        },
+    });
+}

@@ -46,5 +46,6 @@ model Watchlist {
   vote_average  Float
   casts         String[]
   liked         Boolean
+  rating        Int?
 }
 
