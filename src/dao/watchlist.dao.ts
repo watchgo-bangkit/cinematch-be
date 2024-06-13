@@ -13,6 +13,7 @@ export const getWatchlistByIdAndUserId = async (
       user_id: userId,
     },
   })
+
   if (!watchlist) {
     throw new HttpError(404, 'Watchlist not found')
   }
