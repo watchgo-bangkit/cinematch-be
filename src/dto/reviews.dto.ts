@@ -1,9 +1,8 @@
 import { z } from 'zod'
 
 export const AddReviewBody = z.object({
-  title: z.string(),
-  review: z.string(),
-  rating: z.number().min(1).max(5),
+  comment: z.string(),
+  rating: z.number().min(1).max(10),
 })
 export const ReviewWatchlistParams = z.object({
   watchlist_id: z.string().refine((value) => !isNaN(Number(value)), {

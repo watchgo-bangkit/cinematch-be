@@ -16,7 +16,7 @@ app.get('/', (req, res) => {
 
 app.use('/api/auth', authRoutes)
 app.use('/api/movies', movieRoutes)
-app.use('/api/watchlists', watchlistRoutes)
+app.use('/api/watchlist', watchlistRoutes)
 app.use('/api/reviews', reviewRoutes)
 
 app.use(errorHandler)

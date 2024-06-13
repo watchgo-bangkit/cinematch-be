@@ -3,7 +3,6 @@ import { PrismaClient } from '@prisma/client'
 import { ReviewWatchlistParams } from '../dto/reviews.dto'
 import * as WatchlistDao from '../dao/watchlist.dao'
 import { AuthRequest } from '../middlewares/auth'
-import HttpError from '../utils/httpError'
 
 const prisma = new PrismaClient()
 
@@ -15,8 +14,9 @@ export const addReviewToWatchlist = async (
   try {
     const userId = req.user?.userId
     const { watchlist_id } = req.params as ReviewWatchlistParams
+    const watchlistId = parseInt(watchlist_id)
     const watchlist = await WatchlistDao.getWatchlistByIdAndUserId(
-      parseInt(watchlist_id),
+      watchlistId,
       userId,
     )
 
@@ -25,6 +25,7 @@ export const addReviewToWatchlist = async (
         ...req.body,
         movie_id: watchlist?.movie_id,
         user_id: userId,
+        watchlist_id: watchlistId,
       },
     })
 
@@ -71,16 +72,10 @@ export const getAllMyReviews = async (
   next: NextFunction,
 ) => {
   try {
-    const { watchlist_id } = req.params as ReviewWatchlistParams
     const userId = req.user?.userId
-    const watchlist = await WatchlistDao.getWatchlistByIdAndUserId(
-      parseInt(watchlist_id),
-      userId,
-    )
-    const { movie_id } = watchlist
+
     const reviews = await prisma.review.findMany({
       where: {
-        movie_id: movie_id,
         user_id: userId,
       },
     })

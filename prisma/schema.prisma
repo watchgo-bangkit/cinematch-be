@@ -48,22 +48,24 @@ model Watchlist {
   vote_average  Float
   casts         String[]
   liked         Boolean
-  is_watched    Boolean   @default(false)
+  is_watched    Boolean  @default(false)
+  is_reviewed   Boolean  @default(false)
+
   reviews Review[] @relation("WatchlistReviews")
 }
 
 model Review {
   id       Int    @id @default(autoincrement())
-  title    String
-  review   String
+  comment  String
   rating   Int
   movie_id Int
 
   watchlist_id Int
-  user_id      Int       @unique // Add a unique foreign key for the user
+  user_id      Int
   watchlist    Watchlist @relation(fields: [watchlist_id], references: [id], name: "WatchlistReviews")
   user         User      @relation(fields: [user_id], references: [id], name: "UserReviews")
 
+  @@unique([user_id, movie_id])
   @@index([watchlist_id])
   @@index([user_id])
   @@index([movie_id])

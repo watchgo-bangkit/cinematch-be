@@ -13,13 +13,12 @@ router.post(
   reviewWatchlist.addReviewToWatchlist,
 )
 
+router.get('/me', authenticateToken, reviewWatchlist.getAllMyReviews)
 router.get(
   '/:watchlist_id',
   authenticateToken,
   validateSchema(getAllReviewSchema),
-reviewWatchlist.getReviewByWatchlistId,
+  reviewWatchlist.getReviewByWatchlistId,
 )
-
-router.get('/me', authenticateToken, reviewWatchlist.getAllMyReviews)
 
 export default router
