@@ -17,6 +17,7 @@ export const addWatchlistItem = async (data: {
     vote_average: number,
     casts: string[],
     liked: boolean,
+    is_watched: boolean,
     }) => {
     // Check if the movie already exists in the user's watchlist
     const existingItem = await prisma.watchlist.findFirst({
