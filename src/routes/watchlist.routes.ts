@@ -31,7 +31,7 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
             return res.status(401).json({ error: 'Unauthorized' });
         }
 
-        const { movie_id, genres, released_year, runtime, vote_average, casts, liked } = req.body;
+        const { movie_id, genres, released_year, runtime, vote_average, casts, liked, is_watched } = req.body;
         const newWatchlistItem = await addWatchlistItem({
             user_id: userId,
             movie_id,
@@ -41,6 +41,7 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
             vote_average,
             casts,
             liked,
+            is_watched,
         });
         res.status(201).json(newWatchlistItem);
     } catch (error) {
