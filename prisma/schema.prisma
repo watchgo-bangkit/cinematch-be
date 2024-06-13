@@ -8,6 +8,7 @@ generator client {
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 enum Gender {
@@ -46,5 +47,6 @@ model Watchlist {
   vote_average  Float
   casts         String[]
   liked         Boolean
+  is_watched    Boolean   @default(false)
 }
 
