@@ -17,6 +17,7 @@ jobs:
       uses: actions/setup-node@v2
       with:
         node-version: '20'
+        
     - name: Environment variables
       run: |
         touch .env
@@ -37,7 +38,7 @@ jobs:
     - name: Deploy to Google App Engine
       env:
         APP_ENGINE_SERVICE_ACCOUNT: ${{ secrets.APP_ENGINE_SERVICE_ACCOUNT }}
-        
+
       run: |
         echo $APP_ENGINE_SERVICE_ACCOUNT > ${HOME}/gcloud-service-key.json
         gcloud auth activate-service-account --key-file=${HOME}/gcloud-service-key.json
