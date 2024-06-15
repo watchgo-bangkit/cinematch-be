@@ -6,7 +6,7 @@ import watchlistRoutes from './routes/watchlist.routes'
 import reviewRoutes from './routes/reviews.routes'
 
 const app = express()
-const PORT = 8000
+const PORT = 8080
 
 app.use(express.json())
 
