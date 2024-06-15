@@ -40,12 +40,12 @@ export const deleteWatchlistItem = async (id: number, userId: number) => {
             id,
             user_id: userId,
         },
-        });
-    
-        if (!watchlistItem) {
+    });
+
+    if (!watchlistItem) {
         throw new Error('Watchlist item not found');
-        }
-    
-        await prisma.watchlist.delete({ where: { id } });
-        return { message: 'Watchlist item deleted successfully' };
+    }
+
+    await prisma.watchlist.delete({ where: { id } });
+    return { message: 'Watchlist item deleted successfully' };
 };

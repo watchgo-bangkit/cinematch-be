@@ -1,3 +1,4 @@
+import * as tf from '@tensorflow/tfjs';
 import fs from 'fs'
 import Papa from 'papaparse'
 
@@ -38,8 +39,44 @@ const calculateScore = (movie: Movie) => {
     return count > 0 ? score / count : 0; // Safe division
 }
 
+const normalizeRating = (rating: number, min: number, max: number) => 
+    ((rating - min) / (max - min)) * 10;
+
+const getMinMaxRating = async (filePath: string, columnName: string): Promise<{ minRating: number, maxRating: number }> => {
+    const fileContent = fs.readFileSync(filePath, 'utf8');
+    return new Promise((resolve, reject) => {
+        Papa.parse(fileContent, {
+            header: true,
+            dynamicTyping: true,
+            complete: (results: { data: any[]; errors: any[] }) => {
+                if (results.errors.length) {
+                    reject(new Error("Errors occurred while parsing the data."));
+                } else {
+                    let min = Infinity;
+                    let max = -Infinity;
+                    results.data.forEach(row => {
+                        const value = row[columnName];
+                        if (value !== null && !isNaN(value)) {
+                            if (value < min) min = value;
+                            if (value > max) max = value;
+                        }
+                    });
+                    resolve({ 
+                        minRating: min, 
+                        maxRating: max 
+                    });
+                }
+            },
+            error: (err: Error) => {
+                reject(err);
+            }
+        });
+    });
+};
+
 const loadMovies = async (): Promise<Movie[]> => {
-    const fileContent = fs.readFileSync('../static/final-dataset.csv', 'utf8');
+    const {minRating, maxRating} = await getMinMaxRating('../static/final-dataset-normalized.csv', 'vote_average');
+    const fileContent = fs.readFileSync('../static/final-dataset-normalized.csv', 'utf8');
     return new Promise((resolve, reject) => {
         Papa.parse(fileContent, {
             header: true,
@@ -47,7 +84,7 @@ const loadMovies = async (): Promise<Movie[]> => {
             complete: (results: { data: any[]; }) => {
                 const movies = results.data.map((row) => ({
                     id: row.id,
-                    imdb_rating: parseFloat(row.vote_average),  // Assuming 'vote_average' is analogous to 'imdb_rating'
+                    imdb_rating: normalizeRating(parseFloat(row.vote_average), minRating, maxRating),  // Assuming 'vote_average' is analogous to 'imdb_rating'
                     user_rating: row.user_rating,
                     is_interested: row.is_interested
                 }));
@@ -68,7 +105,11 @@ export const getRecommendation = async (userId: number, temperature: number) => 
 
     const movies = await loadMovies();
     
+    // TODO: Load model nya dari cloud storage lagi (replace code below)
+    const model = await tf.loadLayersModel(`../models/${userId}.json`);
+
     // TODO: Execute model prediction
+
 
     const scores = movies.map(movie => calculateScore(movie));
     const maxScore = Math.max(...scores);
