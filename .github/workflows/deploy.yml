@@ -1,0 +1,40 @@
+name: Deploy to Google App Engine
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '20'
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Build TypeScript code
+      run: npm run build
+
+    - name: Deploy to Google App Engine
+      env:
+        APP_ENGINE_SERVICE_ACCOUNT: ${{ secrets.APP_ENGINE_SERVICE_ACCOUNT }}
+        DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        DIRECT_URL: ${{ secrets.DIRECT_URL }}
+        TMDB_API_BASE_URL: ${{ secrets.TMDB_API_BASE_URL }}
+        TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+        TMDB_ASSET_BASE_URL: ${{ secrets.TMDB_ASSET_BASE_URL }}
+        TMDB_READ_API_KEY: ${{ secrets.TMDB_READ_API_KEY }}
+      run: |
+        echo $APP_ENGINE_SERVICE_ACCOUNT > ${HOME}/gcloud-service-key.json
+        gcloud auth activate-service-account --key-file=${HOME}/gcloud-service-key.json
+        gcloud config set project bangkit-cinematch
+        gcloud app deploy --quiet

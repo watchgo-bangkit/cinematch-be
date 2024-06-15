@@ -1,9 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,6 +8,7 @@ generator client {
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 enum Gender {
@@ -20,17 +18,28 @@ enum Gender {
 }
 
 model User {
-  id          Int      @id @default(autoincrement())
-  name        String
-  email       String   @unique
-  password    String
-  age         Int
-  gender      Gender
-  preferences String[]
+  id                Int      @id @default(autoincrement())
+  name              String
+  email             String   @unique
+  password          String
+  age               Int
+  gender            Gender
+  // Relationship to manage user genre preferences
+  genre_preferences Genre[]  @relation("UserToGenre")
+  reviews           Review[] @relation("UserReviews")
+}
+
+model Genre {
+  id      Int    @id @default(autoincrement())
+  tmdb_id Int    @unique
+  name    String
+  // Relationship fields documenting many-to-many with Movie and User
+
+  users User[] @relation("UserToGenre")
 }
 
 model Watchlist {
-  id            Int    @id @default(autoincrement())
+  id            Int      @id @default(autoincrement())
   user_id       Int
   movie_id      Int
   genres        String[]
@@ -39,5 +48,25 @@ model Watchlist {
   vote_average  Float
   casts         String[]
   liked         Boolean
+  is_watched    Boolean  @default(false)
+  is_reviewed   Boolean  @default(false)
+
+  reviews Review[] @relation("WatchlistReviews")
 }
 
+model Review {
+  id       Int    @id @default(autoincrement())
+  comment  String
+  rating   Int
+  movie_id Int
+
+  watchlist_id Int
+  user_id      Int
+  watchlist    Watchlist @relation(fields: [watchlist_id], references: [id], name: "WatchlistReviews")
+  user         User      @relation(fields: [user_id], references: [id], name: "UserReviews")
+
+  @@unique([user_id, movie_id])
+  @@index([watchlist_id])
+  @@index([user_id])
+  @@index([movie_id])
+}

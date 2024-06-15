@@ -1,0 +1,11 @@
+runtime: nodejs20
+
+service: default
+
+env: standard
+
+entrypoint: npm start
+
+handlers:
+  - url: /.*
+    script: auto

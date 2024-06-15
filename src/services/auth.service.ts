@@ -1,39 +1,83 @@
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
-import { PrismaClient, User } from '@prisma/client'
-import { ZodError } from 'zod'
+import { PrismaClient } from '@prisma/client'
 import HttpError from '../utils/httpError'
-import { LoginData, RegisterData } from '../dto/auth.dto'
+import { LoginDataBody, RegisterDataBody } from '../dto/auth.dto'
+import { NextFunction, Request, Response } from 'express'
 
 const prisma = new PrismaClient()
 
-export const registerUser = async (data: RegisterData): Promise<User> => {
+export const registerUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
-    const hashedPassword = await bcrypt.hash(data.password, 10)
-    return await prisma.user.create({
+    const { password } = req.body as RegisterDataBody
+
+    const validatedGenrePreferences = RegisterDataBody.pick({
+      genre_preferences: true,
+    }).parse(req.body)
+
+    // Validate genre IDs
+    for (const genreId of validatedGenrePreferences.genre_preferences) {
+      const genre = await prisma.genre.findUnique({ where: { id: genreId } })
+      if (!genre) {
+        return res.status(400).json({ error: `Invalid genre ID: ${genreId}` })
+      }
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10)
+    const newUser = await prisma.user.create({
       data: {
-        ...data,
+        ...req.body,
         password: hashedPassword,
+        genre_preferences: {
+          connect: validatedGenrePreferences.genre_preferences.map(
+            (genreId) => ({ id: genreId }),
+          ),
+        },
+      },
+      include: {
+        genre_preferences: true,
       },
     })
+    return res.status(201).json({ data: newUser })
   } catch (error) {
-    if (error instanceof ZodError) {
-      throw new HttpError(400, 'Validation Error: ' + error.message)
-    }
-    throw new HttpError(500, 'Internal Server Error')
+    next(error)
   }
 }
 
 export const loginUser = async (
-  data: LoginData,
-): Promise<{ user: User; token: string }> => {
-  const { email, password } = data
-  const user = await prisma.user.findUnique({ where: { email } })
-  if (!user) throw new HttpError(401, 'User not found')
-  const isPasswordValid = await bcrypt.compare(password, user.password)
-  if (!isPasswordValid) throw new HttpError(401, 'Invalid credentials')
-  const token = jwt.sign({ userId: user.id, email: user.email }, 'secretKey', {
-    expiresIn: '1h',
-  })
-  return { user, token }
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { email, password } = req.body as unknown as LoginDataBody
+
+    const user = await prisma.user.findUnique({ where: { email: email } })
+
+    if (!user) {
+      throw new HttpError(401, 'User not found')
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password)
+
+    if (!isPasswordValid) {
+      throw new HttpError(401, 'Invalid credentials')
+    }
+
+    const token = jwt.sign(
+      { userId: user.id, email: user.email },
+      'secretKey',
+      {
+        expiresIn: '3h',
+      },
+    )
+
+    return res.status(200).json({ data: { user, token } })
+  } catch (error) {
+    next(error)
+  }
 }
