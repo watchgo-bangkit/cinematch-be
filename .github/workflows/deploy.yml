@@ -23,13 +23,13 @@ jobs:
 
     - name: Verify secrets
       run: |
-        echo "APP_ENGINE_SERVICE_ACCOUNT: ${APP_ENGINE_SERVICE_ACCOUNT:0:10}..."
-        echo "DATABASE_URL: ${DATABASE_URL:0:10}..."
-        echo "DIRECT_URL: ${DIRECT_URL:0:10}..."
-        echo "TMDB_API_BASE_URL: ${TMDB_API_BASE_URL:0:10}..."
-        echo "TMDB_API_KEY: ${TMDB_API_KEY:0:10}..."
-        echo "TMDB_ASSET_BASE_URL: ${TMDB_ASSET_BASE_URL:0:10}..."
-        echo "TMDB_READ_API_KEY: ${TMDB_READ_API_KEY:0:10}..."
+        echo "APP_ENGINE_SERVICE_ACCOUNT: ${{secrets.APP_ENGINE_SERVICE_ACCOUNT:0:10}}"
+        echo "DATABASE_URL: ${{ secrets.DATABASE_URL:0:10 }}"
+        echo "DIRECT_URL: ${{ secrets.DIRECT_URL:0:10 }}"
+        echo "TMDB_API_BASE_URL: ${{ secrets.TMDB_API_BASE_URL:0:10 }}"
+        echo "TMDB_API_KEY: ${{ secrets.TMDB_API_KEY:0:10 }}"
+        echo "TMDB_ASSET_BASE_URL: ${{ secrets.TMDB_ASSET_BASE_URL:0:10 }}"
+        echo "TMDB_READ_API_KEY: ${{ secrets.TMDB_READ_API_KEY:0:10 }}"
 
     - name: Build TypeScript code
       run: npm run build
