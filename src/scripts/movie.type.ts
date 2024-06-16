@@ -1,7 +1,7 @@
 export interface Movie {
     id: number;
     imdb_rating: number;
-    // user_rating: number | null;
+    user_rating: number | null;
     is_interested: number | null;
     release_year: number;
     runtime: number;

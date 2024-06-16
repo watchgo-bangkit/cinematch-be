@@ -1,17 +1,10 @@
 import * as tf from '@tensorflow/tfjs';
-import fs from 'fs'
-import Papa from 'papaparse'
+import fs from 'fs';
+import Papa from 'papaparse';
 require('@tensorflow/tfjs-node');  // Use this for Node.js environment
 
 import { getWatchlist } from './getWatchlist';
 import { Movie } from './movie.type';
-
-// const movies: Movie[] = [
-//     { id: 1, imdb_rating: 8.2, user_rating: null, is_interested: null },
-//     { id: 2, imdb_rating: 7.5, user_rating: 9.0, is_interested: 1 },
-//     { id: 3, imdb_rating: 6.3, user_rating: 7.0, is_interested: 1 },
-//     { id: 4, imdb_rating: 9.0, user_rating: null, is_interested: null },
-// ];
 
 const calculateScore = (movie: Movie) => {
     let score = 0;
@@ -41,7 +34,6 @@ const loadMovies = async (userId: number): Promise<Movie[]> => {
                     return;
                 }
 
-                // Filter out movies that are in the watchlist
                 const filteredData = results.data.filter(row => !(row.id in watchlist));
                 const movies = filteredData.map(row => ({
                     id: row.id,
@@ -134,7 +126,6 @@ export const getRecommendation = async (userId: number, temperature: number) => 
     const adjustedScores = scores.map(score => score / temperature);
     const probabilities = softmax(adjustedScores);
 
-    // Select 20 movies based on probabilities
     const recommendedMovieIds = sampleMovies(movies, probabilities, 20);
     return recommendedMovieIds;
 }
