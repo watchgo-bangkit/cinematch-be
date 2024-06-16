@@ -1,0 +1,31 @@
+export interface Movie {
+    id: number;
+    imdb_rating: number;
+    user_rating: number | null;
+    is_interested: number | null;
+    release_year: number;
+    runtime: number;
+    revenue: number;
+    cast_1: number;
+    cast_2: number;
+    cast_3: number;
+    genre_28: number;
+    genre_12: number;
+    genre_16: number;
+    genre_35: number;
+    genre_80: number;
+    genre_99: number;
+    genre_18: number;
+    genre_10751: number;
+    genre_14: number;
+    genre_36: number;
+    genre_27: number;
+    genre_10402: number;
+    genre_9648: number;
+    genre_10749: number;
+    genre_878: number;
+    genre_10770: number;
+    genre_53: number;
+    genre_10752: number;
+    genre_37: number;
+}

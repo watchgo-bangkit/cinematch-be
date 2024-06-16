@@ -2,8 +2,8 @@ import * as tf from '@tensorflow/tfjs';
 import fs from 'fs';
 import { parse } from 'csv-parse';
 require('@tensorflow/tfjs-node');  // Use this for Node.js environment
-import { PrismaClient } from '@prisma/client';
-const prisma = new PrismaClient();
+
+import { getWatchlist } from './getWatchlist';
 
 const loadCSVData = async (filePath: string, watchlist: any) => {
   const records = [];
@@ -16,10 +16,10 @@ const loadCSVData = async (filePath: string, watchlist: any) => {
   for await (const record of parser) {
     if (record.id in watchlist) {  // Check if this movie ID exists in the watchlist
       try {
-        const releaseYearNormalized = normalize(parseInt(record.release_year), 1900, new Date().getFullYear());
-        const runtimeNormalized = normalize(parseInt(record.runtime), 0, 300);
-        const revenueNormalized = normalize(parseInt(record.revenue), 0, 1000000000);
-        const voteAverageNormalized = parseFloat(record.vote_average);
+        const releaseYear = parseInt(record.release_year);
+        const runtime = parseInt(record.runtime);
+        const revenue = parseInt(record.revenue);
+        const voteAverage = parseFloat(record.vote_average);
 
         const cast1 = parseInt(record.cast_1);
         const cast2 = parseInt(record.cast_2);
@@ -48,10 +48,10 @@ const loadCSVData = async (filePath: string, watchlist: any) => {
         ];
 
         const features = [
-          releaseYearNormalized,
-          runtimeNormalized,
-          revenueNormalized,
-          voteAverageNormalized,
+          releaseYear,
+          runtime,
+          revenue,
+          voteAverage,
           cast1,
           cast2,
           cast3,
@@ -67,28 +67,6 @@ const loadCSVData = async (filePath: string, watchlist: any) => {
   }
 
   return records;
-};
-
-function normalize(value: number, min: number, max: number) {
-  return (value - min) / (max - min);
-}
-
-const getWatchlist = async (userId: number) => {
-  const watchlistItems = await prisma.watchlist.findMany({
-    select: {
-      movie_id: true,
-      liked: true
-    },
-    where: { user_id: userId },
-  });
-  // Convert array to a dictionary for easier access
-  return watchlistItems.reduce((
-    acc: any, 
-    item: {movie_id: number, liked: boolean}
-  ) => {
-    acc[item.movie_id] = item.liked ? 1 : 0;
-    return acc;
-  }, {});
 };
 
 export const trainModel = async (userId: number) => {
@@ -132,7 +110,22 @@ export const trainModel = async (userId: number) => {
   await model.save(savePath);
 
   // TODO: Store model to cloud storage 
-  // TODO: Delete yg di local
+  // TODO: Delete local model
 
   console.log('Model trained and saved successfully.');
 };
+
+// Function to demonstrate how to use the trainModel function
+const userId = 1;
+
+async function runTraining() {
+  try {
+      await trainModel(userId);
+      console.log("Training completed successfully for user:", userId);
+  } catch (error) {
+      console.error("Training failed for user:", userId, "Error:", error);
+  }
+}
+
+// Invoke the example usage function
+runTraining();

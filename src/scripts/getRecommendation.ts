@@ -1,39 +1,11 @@
 import * as tf from '@tensorflow/tfjs';
 import fs from 'fs'
 import Papa from 'papaparse'
+require('@tensorflow/tfjs-node');  // Use this for Node.js environment
 
-interface Movie {
-    id: number;
-    imdb_rating: number;
-    user_rating: number | null;
-    is_interested: number | null;
-    release_year: number;
-    runtime: number;
-    revenue: number;
-    // Assuming all genre and cast features are already binary or correctly formatted
-    cast_1: number;
-    cast_2: number;
-    cast_3: number;
-    genre_28: number;
-    genre_12: number;
-    genre_16: number;
-    genre_35: number;
-    genre_80: number;
-    genre_99: number;
-    genre_18: number;
-    genre_10751: number;
-    genre_14: number;
-    genre_36: number;
-    genre_27: number;
-    genre_10402: number;
-    genre_9648: number;
-    genre_10749: number;
-    genre_878: number;
-    genre_10770: number;
-    genre_53: number;
-    genre_10752: number;
-    genre_37: number;
-}
+
+import { getWatchlist } from './getWatchlist';
+import { Movie } from './movie.type';
 
 // const movies: Movie[] = [
 //     { id: 1, imdb_rating: 8.2, user_rating: null, is_interested: null },
@@ -65,42 +37,8 @@ const calculateScore = (movie: Movie) => {
     return count > 0 ? score / count : 0; // Safe division
 }
 
-const normalizeRating = (rating: number, min: number, max: number) => 
-    ((rating - min) / (max - min)) * 10;
-
-const getMinMaxRating = async (filePath: string, columnName: string): Promise<{ minRating: number, maxRating: number }> => {
-    const fileContent = fs.readFileSync(filePath, 'utf8');
-    return new Promise((resolve, reject) => {
-        Papa.parse(fileContent, {
-            header: true,
-            dynamicTyping: true,
-            complete: (results: { data: any[]; errors: any[] }) => {
-                if (results.errors.length) {
-                    reject(new Error("Errors occurred while parsing the data."));
-                } else {
-                    let min = Infinity;
-                    let max = -Infinity;
-                    results.data.forEach(row => {
-                        const value = row[columnName];
-                        if (value !== null && !isNaN(value)) {
-                            if (value < min) min = value;
-                            if (value > max) max = value;
-                        }
-                    });
-                    resolve({ 
-                        minRating: min, 
-                        maxRating: max 
-                    });
-                }
-            },
-            error: (err: Error) => {
-                reject(err);
-            }
-        });
-    });
-};
-
-const loadMovies = async (): Promise<Movie[]> => {
+const loadMovies = async (userId: number): Promise<Movie[]> => {
+    const watchlist = await getWatchlist(userId);
     const fileContent = fs.readFileSync('../static/final-dataset-normalized.csv', 'utf8');
     return new Promise((resolve, reject) => {
         Papa.parse(fileContent, {
@@ -112,31 +50,16 @@ const loadMovies = async (): Promise<Movie[]> => {
                     return;
                 }
 
-                // Assuming 'vote_average', 'release_year', 'runtime', and 'revenue' need normalization
-                const voteAverages = results.data.map(row => parseFloat(row.vote_average));
-                const releaseYears = results.data.map(row => parseFloat(row.release_year));
-                const runtimes = results.data.map(row => parseFloat(row.runtime));
-                const revenues = results.data.map(row => parseFloat(row.revenue));
-
-                // Calculate min and max for normalization
-                const minVoteAverage = Math.min(...voteAverages);
-                const maxVoteAverage = Math.max(...voteAverages);
-                const minReleaseYear = Math.min(...releaseYears);
-                const maxReleaseYear = Math.max(...releaseYears);
-                const minRuntime = Math.min(...runtimes);
-                const maxRuntime = Math.max(...runtimes);
-                const minRevenue = Math.min(...revenues);
-                const maxRevenue = Math.max(...revenues);
-
-                const movies = results.data.map(row => ({
+                // Filter out movies that are in the watchlist
+                const filteredData = results.data.filter(row => !(row.id in watchlist));
+                const movies = filteredData.map(row => ({
                     id: row.id,
-                    imdb_rating: normalizeRating(row.vote_average, minVoteAverage, maxVoteAverage),
+                    imdb_rating: parseFloat(row.vote_average),
                     user_rating: row.user_rating ? parseFloat(row.user_rating) : null,
                     is_interested: row.is_interested,
-                    release_year: normalizeRating(row.release_year, minReleaseYear, maxReleaseYear),
-                    runtime: normalizeRating(row.runtime, minRuntime, maxRuntime),
-                    revenue: normalizeRating(row.revenue, minRevenue, maxRevenue),
-                    // Assuming all genre and cast features are already binary or correctly formatted
+                    release_year: parseFloat(row.release_year),
+                    runtime: parseFloat(row.runtime),
+                    revenue: parseFloat(row.revenue),
                     cast_1: row.cast_1,
                     cast_2: row.cast_2,
                     cast_3: row.cast_3,
@@ -176,15 +99,12 @@ export const getRecommendation = async (userId: number, temperature: number) => 
         return null;
     }
 
-    const movies = await loadMovies();
-    
-    // TODO: Load model nya dari cloud storage lagi (replace code below)
+    const movies = await loadMovies(userId);
     const model = await tf.loadLayersModel(`../models/${userId}.json`);
 
-    // TODO: Execute model prediction
     const features = movies.map(movie => [
-        movie.imdb_rating,  // assuming the model uses the normalized imdb_rating
-        movie.release_year, // and other relevant features
+        movie.imdb_rating,
+        movie.release_year,
         movie.runtime,
         movie.revenue,
         movie.cast_1,
@@ -212,37 +132,63 @@ export const getRecommendation = async (userId: number, temperature: number) => 
     ]);
     const featuresTensor = tf.tensor2d(features);
 
-    // Execute model prediction
     const predictionResult = model.predict(featuresTensor);
-    let predictions;
-    if (Array.isArray(predictionResult)) {
-        // Handle the scenario where prediction results are an array of Tensors
-        predictions = predictionResult[0].dataSync(); // Adjust this based on which tensor you need
-    } else {
-        // Directly handle the scenario where the prediction result is a single Tensor
-        predictions = predictionResult.dataSync();
-    }
-    
-    // Update movies with predicted is_interested values
+    let predictions = Array.isArray(predictionResult) ? predictionResult[0].dataSync() : predictionResult.dataSync();
+
     movies.forEach((movie, index) => {
-        movie.is_interested = predictions[index] > 0.5 ? 1 : 0;  // Assuming a threshold for binary classification
+        movie.is_interested = predictions[index] > 0.5 ? 1 : 0;
     });
-  
+
     const scores = movies.map(movie => calculateScore(movie));
+    const adjustedScores = scores.map(score => score / temperature);
+    const probabilities = softmax(adjustedScores);
+
+    // Select 20 movies based on probabilities
+    const recommendedMovieIds = sampleMovies(movies, probabilities, 20);
+    return recommendedMovieIds;
+}
+
+// Softmax function to convert scores to probabilities
+function softmax(scores: number[]) {
     const maxScore = Math.max(...scores);
-    const weightedScores = scores.map(score => Math.exp((score - maxScore) / temperature));
+    const expScores = scores.map(score => Math.exp(score - maxScore));
+    const sumExpScores = expScores.reduce((a, b) => a + b, 0);
+    return expScores.map(score => score / sumExpScores);
+}
 
-    const totalWeight = weightedScores.reduce((acc, val) => acc + val, 0);
-    const randomIndex = weightedScores.map(weight => weight / totalWeight)
-                                      .reduce((acc, weight, index) => {
-                                          const sum = acc.sum + weight;
-                                          return { sum, index: sum > Math.random() ? index : acc.index };
-                                      }, { sum: 0, index: -1 }).index;
+// Random sampling based on softmax probabilities
+function sampleMovies(movies: Movie[], probabilities: number[], numSamples: number) {
+    const sampledIndices = [];
+    for (let i = 0; i < numSamples; i++) {
+        const index = weightedRandomChoice(probabilities);
+        sampledIndices.push(movies[index].id);
+    }
+    return sampledIndices;
+}
 
-    return movies[randomIndex] ? movies[randomIndex].id : null; // Check if index is valid
+// Weighted random selection
+function weightedRandomChoice(probabilities: number[]) {
+    const rand = Math.random();
+    let sum = 0;
+    for (let i = 0; i < probabilities.length; i++) {
+        sum += probabilities[i];
+        if (rand < sum) return i;
+    }
+    return probabilities.length - 1; // Return the last index if no other return occurred
 }
 
 // Example usage
-const temperature = 0.5; 
-const movieRecommendation = getRecommendation(1, temperature);
-console.log("Recommended Movie ID:", movieRecommendation);
+const temperature = 0.5;
+const userId = 1;
+
+// Since getRecommendation is asynchronous, you must handle it with async/await or with .then()
+async function displayRecommendations() {
+    try {
+        const movieRecommendationIds = await getRecommendation(userId, temperature);
+        console.log("Recommended Movie IDs:", movieRecommendationIds);
+    } catch (error: any) {
+        console.error("Failed to get recommendations:", error.message);
+    }
+}
+
+displayRecommendations();

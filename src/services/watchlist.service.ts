@@ -22,8 +22,8 @@ export const addWatchlistItem = async (data: {
     // Check if the movie already exists in the user's watchlist
     const existingItem = await prisma.watchlist.findFirst({
         where: {
-        user_id: data.user_id,
-        movie_id: data.movie_id,
+            user_id: data.user_id,
+            movie_id: data.movie_id,
         },
     });
 
