@@ -3,7 +3,6 @@ import fs from 'fs'
 import Papa from 'papaparse'
 require('@tensorflow/tfjs-node');  // Use this for Node.js environment
 
-
 import { getWatchlist } from './getWatchlist';
 import { Movie } from './movie.type';
 
@@ -15,18 +14,10 @@ import { Movie } from './movie.type';
 // ];
 
 const calculateScore = (movie: Movie) => {
-    if (movie.user_rating === null && movie.is_interested === null) {
-        return movie.imdb_rating;
-    }
-
     let score = 0;
     let count = 0;
     if (movie.imdb_rating !== null) {
         score += movie.imdb_rating;
-        count++;
-    }
-    if (movie.user_rating !== null) {
-        score += movie.user_rating;
         count++;
     }
     if (movie.is_interested !== null) {
