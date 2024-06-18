@@ -9,11 +9,11 @@ import { Movie } from './movie.type';
 const calculateScore = (movie: Movie) => {
     let score = 0;
     let count = 0;
-    if (movie.imdb_rating !== null) {
+    if (movie.imdb_rating != null) {
         score += movie.imdb_rating;
         count++;
     }
-    if (movie.is_interested !== null) {
+    if (movie.is_interested != null) {
         score += movie.is_interested * 10; // Scale binary interest into a 0-10 range
         count++;
     }
@@ -85,7 +85,7 @@ export const getRecommendation = async (userId: number, temperature: number) => 
     const movies = await loadMovies(userId);
     try {
 
-        const model = await tf.loadLayersModel(`../models/${userId}.json`);
+        const model = await tf.loadLayersModel(`static/models/${userId}.json`);
 
         const features = movies.map(movie => [
             movie.imdb_rating,
@@ -136,6 +136,7 @@ export const getRecommendation = async (userId: number, temperature: number) => 
 
 // Softmax function to convert scores to probabilities
 function softmax(scores: number[]) {
+    scores = scores.filter(score => !isNaN(score))
     const maxScore = Math.max(...scores);
     const expScores = scores.map(score => Math.exp(score - maxScore));
     const sumExpScores = expScores.reduce((a, b) => a + b, 0);
@@ -158,6 +159,7 @@ function weightedRandomChoice(probabilities: number[]) {
     let sum = 0;
     for (let i = 0; i < probabilities.length; i++) {
         sum += probabilities[i];
+        // console.log(probabilities[i])
         if (rand < sum) return i;
     }
     return probabilities.length - 1; // Return the last index if no other return occurred
