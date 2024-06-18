@@ -6,6 +6,8 @@ env: standard
 
 entrypoint: npm start
 
+instance_class: E2
+
 handlers:
   - url: /.*
     script: auto
