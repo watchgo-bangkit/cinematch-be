@@ -23,7 +23,7 @@ const calculateScore = (movie: Movie) => {
 
 const loadMovies = async (userId: number): Promise<Movie[]> => {
     const watchlist = await getWatchlist(userId);
-    const fileContent = fs.readFileSync('../static/final-dataset-normalized.csv', 'utf8');
+    const fileContent = fs.readFileSync('static/final-dataset-normalized.csv', 'utf8');
     return new Promise((resolve, reject) => {
         Papa.parse(fileContent, {
             header: true,
@@ -84,9 +84,9 @@ export const getRecommendation = async (userId: number, temperature: number) => 
 
     const movies = await loadMovies(userId);
     try {
-        
+
         const model = await tf.loadLayersModel(`../models/${userId}.json`);
-    
+
         const features = movies.map(movie => [
             movie.imdb_rating,
             movie.release_year,
@@ -116,10 +116,10 @@ export const getRecommendation = async (userId: number, temperature: number) => 
             movie.genre_37,
         ]);
         const featuresTensor = tf.tensor2d(features);
-    
+
         const predictionResult = model.predict(featuresTensor);
         let predictions = Array.isArray(predictionResult) ? predictionResult[0].dataSync() : predictionResult.dataSync();
-    
+
         movies.forEach((movie, index) => {
             movie.is_interested = predictions[index] > 0.5 ? 1 : 0;
         });

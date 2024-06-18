@@ -73,7 +73,7 @@ export const trainModel = async (userId: number) => {
   const watchlist = await getWatchlist(userId);
 
   // Load data from CSV
-  const data = await loadCSVData('../static/final-dataset-normalized.csv', watchlist);
+  const data = await loadCSVData('static/final-dataset-normalized.csv', watchlist);
 
   // Check if the dataset size is a multiple of 20
   if (data.length % 20 !== 0) {
