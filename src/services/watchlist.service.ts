@@ -11,19 +11,14 @@ export const getWatchlist = async (userId: number) => {
 export const addWatchlistItem = async (data: {
     user_id: number,
     movie_id: number,
-    genres: string[],
-    released_year: number,
-    runtime: number,
-    vote_average: number,
-    casts: string[],
     liked: boolean,
     is_watched: boolean,
     }) => {
     // Check if the movie already exists in the user's watchlist
     const existingItem = await prisma.watchlist.findFirst({
         where: {
-        user_id: data.user_id,
-        movie_id: data.movie_id,
+            user_id: data.user_id,
+            movie_id: data.movie_id,
         },
     });
 
@@ -34,7 +29,7 @@ export const addWatchlistItem = async (data: {
     return await prisma.watchlist.create({ data });
 };
 
-export const deleteWatchlistItem = async (id: number, userId: number) => {
+export const updateWatchlistItem = async (id: number, userId: number) => {
     const watchlistItem = await prisma.watchlist.findFirst({
         where: {
             id,
@@ -46,6 +41,6 @@ export const deleteWatchlistItem = async (id: number, userId: number) => {
         throw new Error('Watchlist item not found');
     }
 
-    await prisma.watchlist.delete({ where: { id } });
-    return { message: 'Watchlist item deleted successfully' };
+    await prisma.watchlist.update({ where: { id }, data: {is_watched: true} });
+    return { message: 'Watchlist item updated successfully' };
 };

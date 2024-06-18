@@ -1,6 +1,7 @@
 import { Router } from 'express';
-import { getWatchlist, addWatchlistItem, deleteWatchlistItem } from '../services/watchlist.service';
+import { getWatchlist, addWatchlistItem, updateWatchlistItem } from '../services/watchlist.service';
 import authenticateToken, { AuthRequest } from '../middlewares/auth';
+import { getWatchlistMovieDetail } from '../dao/watchlist.dao';
 
 const router = Router();
 
@@ -16,8 +17,24 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
         if (!userId) {
             return res.status(401).json({ error: 'Unauthorized' });
         }
-        const watchlist = await getWatchlist(userId);
-        res.json(watchlist);
+        const watchlists = await getWatchlist(userId);
+        const watchlistsWithDetails = [];
+        for (const watchlist of watchlists) {
+            const watchlistMovieDetail = await getWatchlistMovieDetail(watchlist.movie_id);
+            watchlistsWithDetails.push({
+                id: watchlist.id,
+                movie_id: watchlist.movie_id,
+                title: watchlistMovieDetail.title,
+                poster_path: watchlistMovieDetail.poster_path,
+                released_year: watchlistMovieDetail.release_date.slice(0, 4),
+                runtime: watchlistMovieDetail.runtime,
+                vote_average: watchlistMovieDetail.vote_average,
+                like: watchlist.liked,
+                is_watched: watchlist.is_watched,
+            });
+        }
+
+        res.json(watchlistsWithDetails);
     } catch (error) {
         res.status(500).json({ error: 'Internal Server Error' });
     }
@@ -31,15 +48,10 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
             return res.status(401).json({ error: 'Unauthorized' });
         }
 
-        const { movie_id, genres, released_year, runtime, vote_average, casts, liked, is_watched } = req.body;
+        const { movie_id, liked, is_watched } = req.body;
         const newWatchlistItem = await addWatchlistItem({
             user_id: userId,
             movie_id,
-            genres,
-            released_year,
-            runtime,
-            vote_average,
-            casts,
             liked,
             is_watched,
         });
@@ -53,8 +65,8 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
     }
 });
 
-// Delete a watchlist item by ID
-router.delete('/:id', authenticateToken, async (req: AuthRequest, res) => {
+// Update a watchlist item by ID
+router.patch('/:id', authenticateToken, async (req: AuthRequest, res) => {
     const { id } = req.params;
     try {
         const userId = req.user?.userId;
@@ -62,7 +74,7 @@ router.delete('/:id', authenticateToken, async (req: AuthRequest, res) => {
             return res.status(401).json({ error: 'Unauthorized' });
         }
 
-        const result = await deleteWatchlistItem(parseInt(id), userId);
+        const result = await updateWatchlistItem(parseInt(id), userId);
         res.status(200).json(result);
     } catch (error) {
         if (isError(error) && error.message === 'Watchlist item not found') {
