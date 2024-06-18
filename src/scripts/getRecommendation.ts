@@ -83,44 +83,48 @@ export const getRecommendation = async (userId: number, temperature: number) => 
     }
 
     const movies = await loadMovies(userId);
-    const model = await tf.loadLayersModel(`../models/${userId}.json`);
-
-    const features = movies.map(movie => [
-        movie.imdb_rating,
-        movie.release_year,
-        movie.runtime,
-        movie.revenue,
-        movie.cast_1,
-        movie.cast_2,
-        movie.cast_3,
-        movie.genre_28,
-        movie.genre_12,
-        movie.genre_16,
-        movie.genre_35,
-        movie.genre_80,
-        movie.genre_99,
-        movie.genre_18,
-        movie.genre_10751,
-        movie.genre_14,
-        movie.genre_36,
-        movie.genre_27,
-        movie.genre_10402,
-        movie.genre_9648,
-        movie.genre_10749,
-        movie.genre_878,
-        movie.genre_10770,
-        movie.genre_53,
-        movie.genre_10752,
-        movie.genre_37,
-    ]);
-    const featuresTensor = tf.tensor2d(features);
-
-    const predictionResult = model.predict(featuresTensor);
-    let predictions = Array.isArray(predictionResult) ? predictionResult[0].dataSync() : predictionResult.dataSync();
-
-    movies.forEach((movie, index) => {
-        movie.is_interested = predictions[index] > 0.5 ? 1 : 0;
-    });
+    try {
+        
+        const model = await tf.loadLayersModel(`../models/${userId}.json`);
+    
+        const features = movies.map(movie => [
+            movie.imdb_rating,
+            movie.release_year,
+            movie.runtime,
+            movie.revenue,
+            movie.cast_1,
+            movie.cast_2,
+            movie.cast_3,
+            movie.genre_28,
+            movie.genre_12,
+            movie.genre_16,
+            movie.genre_35,
+            movie.genre_80,
+            movie.genre_99,
+            movie.genre_18,
+            movie.genre_10751,
+            movie.genre_14,
+            movie.genre_36,
+            movie.genre_27,
+            movie.genre_10402,
+            movie.genre_9648,
+            movie.genre_10749,
+            movie.genre_878,
+            movie.genre_10770,
+            movie.genre_53,
+            movie.genre_10752,
+            movie.genre_37,
+        ]);
+        const featuresTensor = tf.tensor2d(features);
+    
+        const predictionResult = model.predict(featuresTensor);
+        let predictions = Array.isArray(predictionResult) ? predictionResult[0].dataSync() : predictionResult.dataSync();
+    
+        movies.forEach((movie, index) => {
+            movie.is_interested = predictions[index] > 0.5 ? 1 : 0;
+        });
+    }
+    catch (err) {}
 
     const scores = movies.map(movie => calculateScore(movie));
     const adjustedScores = scores.map(score => score / temperature);
