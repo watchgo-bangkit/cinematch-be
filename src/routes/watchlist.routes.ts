@@ -21,35 +21,36 @@ const isError = (error: unknown): error is Error => {
 
 // Get all watchlist items for the logged-in user
 router.get('/', authenticateToken, async (req: AuthRequest, res) => {
-  try {
-    const userId = req.user?.userId
-    if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' })
-    }
-    const watchlists = await getWatchlist(userId)
-    const watchlistsWithDetails = []
-    for (const watchlist of watchlists) {
-      const watchlistMovieDetail = await getWatchlistMovieDetail(
-        watchlist.movie_id,
-      )
-      watchlistsWithDetails.push({
-        id: watchlist.id,
-        movie_id: watchlist.movie_id,
-        title: watchlistMovieDetail.title,
-        poster_path: watchlistMovieDetail.poster_path,
-        released_year: watchlistMovieDetail.release_date.slice(0, 4),
-        runtime: watchlistMovieDetail.runtime,
-        vote_average: watchlistMovieDetail.vote_average,
-        like: watchlist.liked,
-        is_watched: watchlist.is_watched,
-      })
-    }
+    try {
+        const userId = req.user?.userId;
+        if (!userId) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+        
+        const watchlists = await getWatchlist(userId);
+        const watchlistsWithDetailsPromises = watchlists.map(async (watchlist) => {
+            const watchlistMovieDetail = await getWatchlistMovieDetail(watchlist.movie_id);
+            return {
+                id: watchlist.id,
+                movie_id: watchlist.movie_id,
+                title: watchlistMovieDetail.title,
+                poster_path: watchlistMovieDetail.poster_path,
+                released_year: watchlistMovieDetail.release_date.slice(0, 4),
+                runtime: watchlistMovieDetail.runtime,
+                vote_average: watchlistMovieDetail.vote_average,
+                like: watchlist.liked,
+                is_watched: watchlist.is_watched,
+            };
+        });
 
-    res.json(watchlistsWithDetails)
-  } catch (error) {
-    res.status(500).json({ error: 'Internal Server Error' })
-  }
-})
+        const watchlistsWithDetails = await Promise.all(watchlistsWithDetailsPromises);
+
+        res.json(watchlistsWithDetails);
+    } catch (error) {
+        console.error('Error fetching watchlists:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
 
 // Add a new watchlist item for the logged-in user
 router.post('/', authenticateToken, async (req: AuthRequest, res) => {
