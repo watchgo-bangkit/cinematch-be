@@ -1,6 +1,6 @@
-# Cinematch 🎬
+# Cinematch Backend 🎬
 
-Cinematch is a Node.js-based backend application designed to power a personalized movie discovery experience for movie enthusiasts. The backend API supports user authentication, movie recommendation, and watchlist management functionalities, ensuring a seamless interaction for the mobile application users.
+Cinematch Backend is a Node.js-based backend application designed to power a personalized movie discovery experience for movie enthusiasts. The backend API supports user authentication, movie recommendation, and watchlist management functionalities, ensuring a seamless interaction for the mobile application users.
 
 ## Features 🌟
 
@@ -14,7 +14,7 @@ Cinematch is a Node.js-based backend application designed to power a personalize
 
 - Node.js v14.x or newer
 - npm v6.x or newer
-- PostgreSQL or any SQL database supported by Prisma
+- PostgreSQL
 
 ### Installation
 
