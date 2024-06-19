@@ -66,8 +66,7 @@ npm run dev
 
 1. **Build the project:**
 
-```
-sh
+```sh
 npm run build
 ```
 
