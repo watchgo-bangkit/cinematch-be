@@ -66,5 +66,4 @@ export const insertMovieToWatchlist = async (
         credits: { cast, director },
         genres,
     } = movieDetail
-    // TODO: insert datanya ke movie watchlist sesuai yg kepake di model
 }

@@ -3,6 +3,7 @@ import authenticateToken, { AuthRequest } from "../middlewares/auth";
 import { getRecommendation } from "../scripts/getRecommendation";
 import { getRecommendationsMovieDetail } from "../dao/recommendation.dao";
 import { getWatchlist } from "../services/watchlist.service";
+import { getTMDBMovieList } from "../services/tmdb.services";
 
 const router = Router();
 
@@ -13,19 +14,18 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
             return res.status(401).json({ error: 'Unauthorized' });
         }
 
-        // const watchlists = await getWatchlist(userId);
+        const watchlists = await getWatchlist(userId);
         
-        // if (watchlists.length < 10) {
-        //     // Fetch 20 most popular movies from TMDB
-        //     const popularMovies = await getPopularMovies();
-        //     const popularMoviesDetails = popularMovies.results.slice(0, 20).map(movie => ({
-        //         movie_id: movie.id,
-        //         adult: movie.adult,
-        //         title: movie.title,
-        //         poster_path: movie.poster_path,
-        //     }));
-        //     return res.json(popularMoviesDetails);
-        // }
+        if (watchlists.length < 10) {
+            // Fetch 20 most popular movies from TMDB
+            const popularMovies = await getTMDBMovieList(1, true);
+            const popularMoviesDetails = popularMovies.movies.slice(0, 20).map(movie => ({
+                movie_id: movie.id,
+                title: movie.title,
+                poster_path: movie.poster_path,
+            }));
+            return res.json(popularMoviesDetails);
+        }
         
         const recommendationsWithDetail = [];
         while (recommendationsWithDetail.length < 20) {
