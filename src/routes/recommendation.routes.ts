@@ -48,7 +48,6 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
         }
 
         res.json(recommendationsWithDetail.slice(0, 20));
-        console.log(recommendationsWithDetail);
     } catch (error) {
         console.error('Error fetching recommendations:', error);
         res.status(500).json({ error: 'Internal Server Error' });
