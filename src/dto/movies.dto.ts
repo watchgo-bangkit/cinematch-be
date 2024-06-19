@@ -1,5 +1,37 @@
 import { z } from 'zod'
 
+export const MovieListQuery = z.object({
+  popular: z
+    .preprocess(
+      (value) => {
+        if (value === undefined || value === null) return undefined
+        return String(value)
+      },
+      z
+        .string()
+        .refine((value) => value === 'true' || value === 'false', {
+          message: 'value must be "true" or "false"',
+        })
+        .transform((value) => value === 'true'),
+    )
+    .optional(),
+  page: z
+    .string()
+    .refine((value) => !isNaN(Number(value)), {
+      message: 'page must be a valid number',
+    })
+    .transform((value) => parseInt(value))
+    .optional(),
+})
+
+export type MovieListQuery = {
+  popular?: boolean
+  page?: number
+}
+
+export const MovieListSchema = z.object({
+  query: MovieListQuery,
+})
 export const MovieDetailParams = z.object({
   id: z.string().refine((value) => !isNaN(Number(value)), {
     message: 'id must be a valid number',

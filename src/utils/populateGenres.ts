@@ -36,7 +36,7 @@ const populateGenres = async () => {
       await prisma.genre.upsert({
         where: { tmdb_id: genre.id },
         update: {},
-    create: {
+        create: {
           tmdb_id: genre.id,
           name: genre.name,
         },
