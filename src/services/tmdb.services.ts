@@ -11,6 +11,7 @@ dotenv.config()
 
 const TMDB_API_PATH = {
   movieList: '/discover/movie',
+  popularMovieList: '/movie/popular',
   movieDetail: (movie_id: number) => `/movie/${movie_id}`,
   movieGenreList: '/genre/movie/list',
   tvGenreList: '/genre/tv/list',
@@ -47,11 +48,18 @@ export const getTMDBAllGenres = async () => {
 }
 
 // Function to fetch the movie list
-export const getTMDBMovieList = async () => {
+export const getTMDBMovieList = async (page: number = 1, popular?: boolean) => {
   try {
-    const movieListResponse = await tmdbAxios.get(TMDB_API_PATH.movieList)
+    const movieListResponse = await tmdbAxios.get(
+      popular ? TMDB_API_PATH.popularMovieList : TMDB_API_PATH.movieList,
+      {
+        params: { language: 'en-US', page: page }, // Additional query params
+      },
+    )
 
     return {
+      page: movieListResponse.data.page,
+      total_pages: movieListResponse.data.total_pages,
       movies: movieListResponse.data.results as TMDB_Movie[],
     }
   } catch (error) {

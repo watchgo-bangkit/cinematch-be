@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client'
 import { getTMDBMovieList } from './tmdb.services'
 import {
   MovieDetailParams,
+  MovieListQuery,
   MovieSwipeBody,
   SwipeDirection,
 } from '../dto/movies.dto'
@@ -16,7 +17,8 @@ export const getMovieList = async (
   next: NextFunction,
 ) => {
   try {
-    const movies = await getTMDBMovieList()
+    const { popular, page } = req.query as MovieListQuery
+    const movies = await getTMDBMovieList(page, popular)
 
     return res.json({ data: movies })
   } catch (error) {
