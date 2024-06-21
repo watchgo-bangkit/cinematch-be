@@ -29,7 +29,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
         
         const recommendationsWithDetail = [];
         while (recommendationsWithDetail.length < 20) {
-            const recommendations = await getRecommendation(userId, 0.2);
+            const recommendations = await getRecommendation(userId, 0.3);
             if (recommendations) {
                 const detailPromises = recommendations.map(async (recommendation) => {
                     const recommendationWithDetail = await getRecommendationsMovieDetail(recommendation);
