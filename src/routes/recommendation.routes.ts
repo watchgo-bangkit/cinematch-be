@@ -4,7 +4,6 @@ import { getRecommendation } from "../scripts/getRecommendation";
 import { getRecommendationsMovieDetail } from "../dao/recommendation.dao";
 import { getWatchlist } from "../services/watchlist.service";
 import { getTMDBMovieList } from "../services/tmdb.services";
-import { trainModel } from "../scripts/trainModel";
 
 const router = Router();
 
@@ -27,7 +26,6 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
             }));
             return res.json(popularMoviesDetails);
         }
-        trainModel(userId);
         const recommendationsWithDetail = [];
         while (recommendationsWithDetail.length < 20) {
             const recommendations = await getRecommendation(userId, 0.3);
