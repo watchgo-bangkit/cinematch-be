@@ -96,7 +96,7 @@ export const trainModel = async (userId: number) => {
   model.compile({
     optimizer: 'adam',
     loss: 'meanSquaredError',
-    metrics: ['meanAbsoluteError']
+    metrics: ['mae']
   });
 
   // Train the model
