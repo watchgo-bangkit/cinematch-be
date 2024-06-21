@@ -106,7 +106,7 @@ export const trainModel = async (userId: number) => {
   });
 
   // Save the updated model
-  const savePath = `static/models/${userId}.json`;
+  const savePath = `file://static/models/${userId}.json`;
   await model.save(savePath);
 
   // TODO: Store model to cloud storage 
