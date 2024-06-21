@@ -18,6 +18,7 @@ app.use('/api/auth', authRoutes)
 app.use('/api/movies', movieRoutes)
 app.use('/api/watchlist', watchlistRoutes)
 app.use('/api/recommendations', recommendationsRoutes)
+app.use('/static', express.static('public'));
 
 app.use(errorHandler)
 

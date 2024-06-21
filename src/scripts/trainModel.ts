@@ -105,14 +105,8 @@ export const trainModel = async (userId: number) => {
     batchSize: 32
   });
 
-  // Ensure the directory exists
-  const dir = 'file://static/models';
-  if (!fs.existsSync(dir)){
-    fs.mkdirSync(dir, { recursive: true });
-  }
-
   // Save the updated model
-  const savePath = `file://static/models/${userId}.json`;
+  const savePath = `static/models/${userId}.json`;
   await model.save(savePath);
 
   // TODO: Store model to cloud storage 
